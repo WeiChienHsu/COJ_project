@@ -47,7 +47,23 @@ Adding application logic. Almost anything can be a service. (Logic Service / Dat
 ```
 
 ### Module
+- declarations : Component
+- imports : Module
+- providers : Service
+- bootstrap : Enter
 ```
 Boxing components and services. (收納箱)
+```
+```ts
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
 ```
 ***
