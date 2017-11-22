@@ -33,6 +33,8 @@ Composing HTML templates with Angularized markup
 Classes to manage or support the templates.
 Interacting with the VIEW through an API of properites and methods. 
 ```
+- selector : How to show the page in index.html <app-root>
+
 ```ts
 @Component({
   selector: 'app-root',
@@ -67,3 +69,17 @@ Boxing components and services. (收納箱)
 })
 ```
 ***
+
+## Components need to be Created
+### Client
+
+```
+╔  Router: app.routes.ts 
+║      ↓
+║      ↓       ╔ Problem-list
+╟  Conponent ══╟ Problem-detail
+║              ╟ New Problem
+║              ╚ Navbar
+║                   ↓
+╚  Data Service ←← ↙          
+```
