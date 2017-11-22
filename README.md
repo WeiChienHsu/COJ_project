@@ -30,7 +30,8 @@ Composing HTML templates with Angularized markup
 ```
 ### Component(Model)
 ```
-Classes to manage or support the templates. Interacting with the VIEW through an API of properites and methods. 
+Classes to manage or support the templates.
+Interacting with the VIEW through an API of properites and methods. 
 ```
 ```ts
 @Component({
