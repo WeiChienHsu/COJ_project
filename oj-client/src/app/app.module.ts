@@ -1,3 +1,4 @@
+import { SummaryPipe } from './pipe/summary.pipe';
 import { routing } from './app.routes';
 import { DataService } from './services/data.service';
 import { BrowserModule } from '@angular/platform-browser';
@@ -12,10 +13,11 @@ import { ProblemDetailComponent } from './components/problem-detail/problem-deta
   declarations: [
     AppComponent,
     ProblemListComponent,
-    ProblemDetailComponent
+    ProblemDetailComponent,
+    SummaryPipe
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
     routing
   ],
   providers: [

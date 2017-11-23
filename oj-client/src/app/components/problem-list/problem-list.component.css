@@ -8,6 +8,12 @@
     color: #fbfdfa;
     font-size: 12px;
   }
+
+  .description{
+     margin-top:0.6em;
+     margin-left:2em;
+     padding: 1.2em 1.5em;
+  }
   
   .title {
     font-size: 1.2em;
