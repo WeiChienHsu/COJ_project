@@ -1,0 +1,43 @@
+<div class="list-group-item addProblem">
+  <form #formRef = "ngForm">
+    <!-- Name -->
+    <div class="form-group"> 
+      <label for="problemName">Problem Name</label>
+      <input name="problemName" id="problemName" 
+      class="form-control" type="text" required 
+      placeholder="Please Enter Problem Name" 
+      [(ngModel)]="newProblem.name">
+    </div>
+     <!-- Diff -->
+    <div class="form-group">
+        <label for="problemDiff">Difficulty</label>
+        <select name="diff" id="diff" class="form-control"  
+        [(ngModel)]="newProblem.diff">
+          <option *ngFor = "let diff of diffs" [value] = "diff">
+            {{diff}}
+          </option>
+        </select>
+      </div>
+      <!-- Desc -->
+      <div class="form-group">
+          <label for="problemDesc">Problem Description</label>
+          <textarea name="problemDesc" id="problemDesc" 
+          class="form-control" required 
+          placeholder="Please Enter Problem Description" 
+          [(ngModel)]="newProblem.desc" rows="3">
+          </textarea>
+      </div>
+       <!-- Submit -->
+       <div class="row">
+         <div class="col-md-12">
+          <button type="submit" class="btn btn-info pull-roght"
+          (click) = "addProblem()">
+            Add Problem
+          </button>
+         </div>
+       </div>
+
+  </form>
+</div>
+<br/>
+<br/>

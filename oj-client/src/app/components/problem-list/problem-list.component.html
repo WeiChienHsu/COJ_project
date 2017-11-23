@@ -1,4 +1,5 @@
 <div class="container">
+  <app-new-problem></app-new-problem>
   <div class="list-group">
     <div class="list-group-item" *ngFor="let problem of problems" >
       <span class="{{'pull-left label difficulty diff-' + problem.diff.toLowerCase()}}">

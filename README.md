@@ -377,3 +377,127 @@ export class SummaryPipe implements PipeTransform {
 
 *** 
 ## Problem Detail Component
+- Import Probelm from model
+```ts
+import { Problem } from '../../models/problem.model';
+
+export class ProblemDetailComponent implements OnInit {
+  problem : Problem[];
+}
+```
+- Import Data from DataService and Gain data from ActivedRoute
+```ts
+import { DataService } from '../../services/data.service';
+import { ActivatedRoute, Params} from '@angular/router';
+
+  constructor(private dataService: DataService, private route: ActivatedRoute)  { }
+
+```
+
+- Used ngOnInit to get the id from Route and change the parameter from String into Number
+
+```ts
+  ngOnInit() {
+    this.route.params.subscribe(params => {
+      this.problem = this.dataService.getProblem(+params['id']); // Change String into Number
+    })
+  }
+```
+
+- Add HTML markup (*ngIf to show existed problem)
+```html
+<div class="container" *ngIf = "problem">
+```
+
+## NEW-Problem Component
+- Add new-problem component
+```
+$ ng g c new-problem
+```
+
+- Import Form module
+```ts
+  imports: [
+    BrowserModule,
+    routing,
+    FormsModule
+  ],
+```
+
+- HTML markup for New Problem Form 
+- [()]: "Banana in the Box" for TWO-WAY data binding
+* []: Property Binding (One-Way)
+* (): Event Binding (One-Way)
+
+- Input Name <label> + <input>
+```html
+<div>
+  <form #formRef = "ngForm">
+    <div class="form-group">
+      <label for="problemName">Problem Name</label>
+      <input name="problemName" id="problemName" 
+      class="form-control" type="text" required 
+      placeholder="Please Enter Problem Name" 
+      [(ngModel)]="newProblem.name">
+    </div>
+    <div></div>
+    .
+    .
+    .
+  </form>
+</div>
+```
+
+- Select Difficulities <select> + <option>
+```html
+<div class="form-group">
+        <label for="problemDiff">Difficulty</label>
+        <select name="diff" id="diff" class="form-control"  
+        [(ngModel)]="newProblem.diff">
+          <option *ngFor = "let diff of diffs" [value] = "diff">
+            {{diff}}
+          </option>
+        </select>
+      </div>
+```
+
+- Type Area <textarea></textarea>
+```html
+      <div class="form-group">
+          <label for="problemDesc">Problem Description</label>
+          <textarea name="problemDesc" id="problemDesc" 
+          class="form-control" required 
+          placeholder="Please Enter Problem Description" 
+          [(ngModel)]="newProblem.desc" rows="3">
+          </textarea>
+      </div>
+```
+
+- Submit Button (with Click EVENT)
+```html
+<div class="row">
+    <div class="col-md-12">
+     <button type="submit" class="btn btn-info pull-roght"
+    (click) = "addProblem()">
+        Add Problem
+    </button>
+    </div>
+</div>
+```
+
+### Modle and Data in New-Problem
+
+- Import Problem Model into new-problem.component and Add a string array of difficulities
+- Add a method of "addProblem()"
+```ts
+
+```
+- Give a const variable of default Problem
+```ts
+const DEFAULT_PROBLEM: Problem = Object.freeze({
+  id:0,
+  name:'',
+  desc:'',
+  diff:'easy'
+});
+```
