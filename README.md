@@ -93,6 +93,23 @@ $ng g c problem-list
 ```
 ***
 ## Add Bootstrap
+- install bootstrap & jQuery package from npm 
+- Since we don't use all bootstrap module, suggest to use from npm
+```
+npm install bootstrap --save
+npm install jquery --save
+```
+- Add both jQuery nd Bootstrap in the script and stylesheet from ".angular-cli.json"
+```js
+      "styles": [
+        "styles.css",
+        "../node_modules/bootstrap/dist/css/bootstrap.min.css"
+      ],
+      "scripts": [
+        "../node_modules/jquery/dist/jquery.js",
+        "../node_modules/bootstrap/dist/js/bootstrap.js"
+      ],
+```
 
 
 ***
@@ -197,5 +214,166 @@ export class ProblemListComponent implements OnInit {
 }
 ....
 ```
+***
+# Seperate the Data and Model/View
+- Create a single reusable data service and inject it into the components that need it.
+
+## Move mock data to seperate file
+- to mock-problems.ts and export it
+```ts
+import { Problem } from "./models/problem.model";
+export const PROBLEMS: Problem[] = [
+ //....
+]
+```
+## Seperate the getting problem logic
+```
+$cd src/app
+$mkdir services
+$cd services
+$ng g s data
+```
+
+### Provide the servie in app.module
+```ts
+@NgModule({
+  providers: [
+    DataService
+  ],
+})
+```
+
+### Add service in DataService
+- Import problem model and mock problems
+```ts
+import { Injectable } from '@angular/core';
+import { Problem } from '../models/problem.model';
+import { PROBLEMS } from '../mock-problems';
+```
+- Add Method to help get singal problem with id and whole problems
+```ts
+  getProblems():Problem[]{
+    return PROBLEMS;
+  }
+
+  getProblem(id: number): Problem{
+    return PROBLEMS.find((problem) => problem.id === id );
+  }
+```
+
+## Inject the service into problem-list component
+```ts
+import {DataService} from '../../services/data.service';
+
+    problems: Problem[];
+    constructor(private dataService: DataService) { }
+
+    getProblems(): void{
+    this.problems = this.dataService.getProblems();
+```
+
+*** 
+## Problem Detail Component
+```
+ng g c problem-detail
+```
+*** 
+### Single page app Routing
+- Client side routing is the same as server side routing, 
+- but it's ran in the browser
+### Add app.routes.ts
+```
+touch app/app.routes.ts
+```
+- Import angular/router && Components
+
+```ts
+import { Routes, RouterModule } from '@angular/router';
+import { ProblemListComponent } from './components/problem-list/problem-list.component';
+import { ProblemDetailComponent } from './components/problem-detail/problem-detail.component';
+```
+### Settle a router and export for Root
+```ts
+const router: Routes =[
+    {
+        path: "",
+        redirectTo: 'problems',
+        pathMatch: 'full'
+    },
+    {
+        path: 'problems',
+        component: ProblemListComponent
+    },
+    {
+        path: 'problems/:id',
+        component: ProblemDetailComponent
+    },
+    {
+        path: '**',
+        redirectTo: 'problems'
+    }
+
+];
+
+export const routing = RouterModule.forRoot(router);
+```
+
+### Import in app.module
+```
+  imports: [
+    BrowserModule,
+    routing
+  ],
+```
+
+### Change app.c.html for showing router page
+```ts
+<router-outlet></router-outlet>
+```
 
 
+### add a router link in an anchor tag (problem-list.component.html)
+```ts
+ <a class="list-group-item" *ngFor="let problem of problems"
+      [routerLink]=['/problems',problem.is]>
+```
+***
+### Add Pipe for SUMMARY
+- Add summary.pipe.ts
+```
+$ng -g -p summary
+```
+- Import Pipe, PipeTransform and Give a logic to SUMMARY
+```ts
+import { Pipe, PipeTransform } from '@angular/core';
+@Pipe({
+    name: "summary"
+})
+
+export class SummaryPipe implements PipeTransform {
+    transform(value: string, limit?: number){
+        if (!value)
+            return null;
+        return value.substr(0,70) + '...';
+    }
+}
+```
+
+- Add SummaryPipe into Module
+```ts
+@NgModule({
+  declarations: [
+    AppComponent,
+    ProblemListComponent,
+    ProblemDetailComponent,
+    SummaryPipe
+  ],
+```
+
+- Used Summary in html markup
+```html
+<div class="list-group-item description "> {{problem.desc | summary}}</div>
+```
+
+*** 
+## Problem Detail Component
