@@ -488,8 +488,9 @@ $ ng g c new-problem
 ### Modle and Data in New-Problem
 
 - Import Problem Model into new-problem.component and Add a string array of difficulities
-- Add a method of "addProblem()"
+
 ```ts
+import { Problem } from '../../models/problem.model';
 
 ```
 - Give a const variable of default Problem
@@ -500,4 +501,17 @@ const DEFAULT_PROBLEM: Problem = Object.freeze({
   desc:'',
   diff:'easy'
 });
+```
+
+- Add a method of "addProblem()"
+```ts
+
+```
+
+- Assign Value to Prpblem and then send the data to DataService for processing (by addProblenm())
+
+- connent to Service in constructor
+
+```ts
+
 ```

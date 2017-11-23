@@ -14,11 +14,15 @@ const DEFAULT_PROBLEM: Problem = Object.freeze({
   styleUrls: ['./new-problem.component.css']
 })
 export class NewProblemComponent implements OnInit {
-  newProblem: Problem;
+  newProblem: Problem = Object.assign({}, DEFAULT_PROBLEM);
   diffs: string[] = ['easy', 'medium', 'hard', 'super'];
   constructor() { }
 
   ngOnInit() {
+  }
+
+  addProblem(){
+    
   }
 
 }
