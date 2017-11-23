@@ -1,3 +1,4 @@
+import { DataService } from './../../services/data.service';
 import { Component, OnInit } from '@angular/core';
 import { Problem } from '../../models/problem.model';
 
@@ -16,13 +17,15 @@ const DEFAULT_PROBLEM: Problem = Object.freeze({
 export class NewProblemComponent implements OnInit {
   newProblem: Problem = Object.assign({}, DEFAULT_PROBLEM);
   diffs: string[] = ['easy', 'medium', 'hard', 'super'];
-  constructor() { }
+  constructor(private dataService: DataService) { }
 
   ngOnInit() {
   }
 
   addProblem(){
-    
+    this.dataService.addProblem(this.newProblem);
+    // we need to chagne new Problem into Default Problem after each added
+    this.newProblem = Object.assign({}, DEFAULT_PROBLEM);
   }
 
 }

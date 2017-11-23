@@ -503,15 +503,42 @@ const DEFAULT_PROBLEM: Problem = Object.freeze({
 });
 ```
 
-- Add a method of "addProblem()"
-```ts
 
-```
 
 - Assign Value to Prpblem and then send the data to DataService for processing (by addProblenm())
-
-- connent to Service in constructor
+- Import DataService
+- Connent to Service in constructor
+- Chagne new Problem into Default Problem after each added
 
 ```ts
+newProblem: Problem = Object.assign({}, DEFAULT_PROBLEM);
+  diffs: string[] = ['easy', 'medium', 'hard', 'super'];
+  constructor(private dataService: DataService) { }
+```
+```ts
+  addProblem(){
+    this.dataService.addProblem(this.newProblem);
+    this.newProblem = Object.assign({}, DEFAULT_PROBLEM);
+  }
+```
 
+- dataService modify: Since we couldn't change the array of PROBLEMS, we saved it to another variable for adding new Problems
+
+```ts
+problems: Problem[] = PROBLEMS;
+```
+- Also, change the original PROBLEM to this.problems which we setted last step
+```ts
+  getProblems():Problem[]{
+    return this.problems;
+  }
+```
+
+- Add a method of "addProblem()"
+- Give a new problem an id and push this object into problems array
+```ts
+  addProblem(problem: Problem): void{
+    problem.id = this.problems.length + 1;
+    this.problems.push(problem);
+  }
 ```
