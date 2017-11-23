@@ -335,7 +335,7 @@ export const routing = RouterModule.forRoot(router);
 ### add a router link in an anchor tag (problem-list.component.html)
 ```ts
  <a class="list-group-item" *ngFor="let problem of problems"
-      [routerLink]=['/problems',problem.is]>
+      [routerLink]=['/problems',problem.id]>
 ```
 ***
 ### Add Pipe for SUMMARY
