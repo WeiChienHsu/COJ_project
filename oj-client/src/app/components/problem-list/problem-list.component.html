@@ -1,13 +1,14 @@
 <div class="container">
   <div class="list-group">
-    <a class="list-group-item" *ngFor="let problem of problems" [routerLink]="['/problems',problem.is]">
+    <div class="list-group-item" *ngFor="let problem of problems" >
       <span class="{{'pull-left label difficulty diff-' + problem.diff.toLowerCase()}}">
-        {{problem.diff}}
+        {{problem.diff | uppercase}}
       </span>
       <strong class="title">
-        {{problem.id}}. {{problem.name}}
+        <em>{{problem.id}} </em> | {{problem.name}}
       </strong>
-      <div class="list-group-item description "> {{problem.desc | summary}}</div>
-    </a>
+      <i class="glyphicon glyphicon-heart pull-right"></i>
+      <a class="description" [routerLink]="['/problems',problem.is]" class="list-group-item description "> {{problem.desc | summary}} <i class="pull-right glyphicon glyphicon-menu-right"></i></a>
+    </div>
   </div>
 </div>

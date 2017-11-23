@@ -4,9 +4,13 @@
   }
   
   .label.difficulty {
-    padding-top: 0.6em;
+    padding: 0.6em;
     color: #fbfdfa;
     font-size: 12px;
+  }
+  
+  .description{
+    font-size: 1.0em;
   }
 
   .description{
@@ -16,7 +20,7 @@
   }
   
   .title {
-    font-size: 1.2em;
+    font-size: 1.4em;
   }
   
   .diff-easy {
