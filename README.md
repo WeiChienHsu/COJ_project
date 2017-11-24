@@ -448,7 +448,7 @@ $ ng g c new-problem
 </div>
 ```
 
-- Select Difficulities <select> + <option>
+- Select Difficulities <\select> + <\option>
 ```html
 <div class="form-group">
         <label for="problemDiff">Difficulty</label>
@@ -461,7 +461,7 @@ $ ng g c new-problem
       </div>
 ```
 
-- Type Area <textarea></textarea>
+- Type Area <\textarea><\textarea>
 ```html
       <div class="form-group">
           <label for="problemDesc">Problem Description</label>
@@ -541,4 +541,47 @@ problems: Problem[] = PROBLEMS;
     problem.id = this.problems.length + 1;
     this.problems.push(problem);
   }
+```
+
+## Navbar Component
+- create files for navbar
+```
+ng g c navbar
+```
+- Put navbar in app.component.html
+```html
+<app-navbar></app-navbar>
+<router-outlet></router-outlet>
+```
+- Copy navbar codes from bootstrap
+```html
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container"> 
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+......
+```
+
+## Add footer
+- install font-awsome
+```
+npm install --save font-awesome
+```
+- Add font-awesome stylesheet in ".angular-cli.json" 
+```ts
+"../node_modules/font-awesome/css/font-awesome.css"
+```
+
+- Add html
+```html
+<div class="container">
+  <div class="social-icons">
+   <ul class="list-inline">
+     <li><a href="mailto:weichien711@gmail.com?Subject=Visiter from your website" target="_blank"  ><i class="fa fa-envelope"></i></a></li>
+     <li><a href="https://github.com/WeiChienHsu" target="_blank"><i class="fa fa-github" ></i></a></li>
+     <li><a href="https://www.linkedin.com/in/weichien-hsu/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+   </ul>
+ </div> <!-- /.social-icons -->
+</div>  
 ```
