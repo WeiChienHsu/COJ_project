@@ -30,13 +30,18 @@ let problems = [
     }];
 
 const getProblems = function(){
-    console.log('In the problem service get problems')
+    console.log('In the problem service get problems');
     return new Promise((resolve, reject) => {
         resolve(problems);
     })
 }
 
-const getProblem = function(){}
+const getProblem = function(id){
+    console.log("In the problem service get single problem");
+    return new Promise((resolve, reject) => {
+        resolve(problems.find(problem => problem.id === id));
+    });
+}
 
 module.exports = {
     getProblems,
