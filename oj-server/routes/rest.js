@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const problemService = require('../services/problemService');
+const bodyParser = require('body-parser');
+const jsonParser = bodyParser.json();
 
 // GET problems
 router.get('/problems', (req, res) => {
@@ -14,5 +16,13 @@ router.get('/problems/:id', (req, res) =>{
         .then(problem => res.json(problem))
 } )
 // POST problem
+router.post('/problems',jsonParser, (req, res) => {
+    problemService.addProblem(req.body)
+        .then(problem => { //resolve
+            res.json(problem);
+        },(error) => { //reject
+            res.status(400).send('Problem name already exists!')
+        })
+})
 
 module.exports = router;
