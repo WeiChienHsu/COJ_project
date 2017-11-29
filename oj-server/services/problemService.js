@@ -35,6 +35,7 @@ const getProblems = function(){
     return new Promise((resolve, reject) => {
         ProblemModel.find({}, (err, problems) => {
             if (err) {
+                console.log("In the problem service get problems");
                 reject(err);
             } else {
                 resolve(problems);
@@ -44,23 +45,37 @@ const getProblems = function(){
 }
 
 const getProblem = function(id){
-    console.log("In the problem service get single problem");
     return new Promise((resolve, reject) => {
-        resolve(problems.find(problem => problem.id === id));
+        ProblemModel.findOne({id: id}, (err, problem) => {
+            if (err) {
+                console.log("In the problem service get problem");
+                reject(err);
+            } else {
+                resolve(problem);
+            }
+        });
     });
 }
 
 const addProblem = function(newProblem){
     return new Promise((resolve, reject) => {
-        if (problems.find(problem => problem.name === newProblem.name)){
-            reject('Problem already exists!');
-        } else {
-            newProblem.id = problems.length + 1;
-            problems.push(newProblem);
-            resolve(newProblem);
-        }
+        ProblemModel.findOne({name: newProblem.name}, (err, data) => {
+            if (data) { 
+                // find a same id
+                reject('Problem already exists!');
+            } else {
+                ProblemModel.count({}, (err, count) => {
+                    newProblem.id = count + 1;
+                    //Save into MongoDB
+                    const mongoProblem = new ProblemModel(newProblem);
+                    mongoProblem.save();
+                    resolve(mongoProblem);
+                });
+            }
+        });
     });
 }
+
 
 module.exports = {
     getProblems,
