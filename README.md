@@ -990,9 +990,14 @@ import { HttpClientModule } from '@angular/common/http';
 ```
 - Import HttpClient, HttpHeaders, HttpResponse:
 
-- Observable: Observe Data Flow. Non-stop sending data, with Values, Complete, Arror. 
+- Observable: Observe Data Flow. Non-stop sending data, with Values, Complete, Error. 
 
 - BehaviorSubject: Always exist.
+
+* [For more information about observables](https://www.zhihu.com/question/48615787)
+
+* [For more information about observables](https://stackoverflow.com/questions/39494058/behaviorsubject-vs-observable)
+
 
 ```ts
 import { Injectable } from '@angular/core';
@@ -1015,8 +1020,13 @@ import 'rxjs/add/operator/toPromise';
 ```ts
  constructor(private HttpClient: HttpClient) { }
 ```
+### getProblems
 
-- Call Api v1, Endpoint ('api/v1/problem');
+- Call Api v1, Endpoint ('api/v1/problem')
+- Transfer BehaviorSubject into Promise
+- "Next" : receive the changes and check the latest data from database
+- "Catch" : for frontend to handle Error, if there's error, use handleError method
+
 ```ts
   getProblems():Observable<Problem[]>{
     this.httpClient.get('api/v1/problems')
@@ -1035,3 +1045,20 @@ import 'rxjs/add/operator/toPromise';
     return Promise.reject(error.body || error);
   }
 ```
+
+### getProblem
+
+```ts
+  getProblem(id: number): Promise<Problem>{
+    return this.httpClient.get(`api/v1/problems/${id}`)
+      .toPromise()
+      .then((res: any) => res)
+      .catch(this.handleError);
+  }
+```
+
+### addProblem
+
+- Since we need to send a POST request to API, we need to give a hearder first (Content-Type)
+
+

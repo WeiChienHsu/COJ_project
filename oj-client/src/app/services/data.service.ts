@@ -17,7 +17,7 @@ export class DataService {
   constructor(private httpClient: HttpClient) { }
 
   // get problems
-  getProblems():Observable<Problem[]>{
+  getProblems(): Observable<Problem[]>{
     this.httpClient.get('api/v1/problems')
       .toPromise()
       .then((res: any) => {
@@ -28,14 +28,16 @@ export class DataService {
   }
 
   // get single problem
-  getProblem(id: number): Problem{
-    return this.problems.find((problem) => problem.id === id );
+  getProblem(id: number): Promise<Problem>{
+    return this.httpClient.get(`api/v1/problems/${id}`)
+      .toPromise()
+      .then((res: any) => res)
+      .catch(this.handleError);
   }
     
   // add New Problem  
   addProblem(problem: Problem): void{
-    problem.id = this.problems.length + 1;
-    this.problems.push(problem);
+      const options = { headers: new HttpHeaders({'Content-Type': 'application/json' })}
   }
 
   private handleError(error: any): Promise<any> {
