@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Problem } from '../../models/problem.model';
 import { DataService } from '../../services/data.service';
 import { ActivatedRoute, Params} from '@angular/router';
+
+
 @Component({
   selector: 'app-problem-detail',
   templateUrl: './problem-detail.component.html',
@@ -13,8 +15,13 @@ export class ProblemDetailComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      this.problem = this.dataService.getProblem(+params['id']); // Change String into Number
-    })
+      this.dataService.getProblem(+params['id'])
+        .then(problem => this.problem = problem)
+        .catch(this.handleError)
+    }); 
+  }
+  private handleError(error: any): Promise<any> {
+    return Promise.reject(error.body || error);
   }
 
 }
