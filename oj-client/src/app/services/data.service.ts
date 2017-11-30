@@ -36,9 +36,16 @@ export class DataService {
   }
     
   // add New Problem  
-  addProblem(problem: Problem): void{
-      const options = { headers: new HttpHeaders({'Content-Type': 'application/json' })}
-  }
+  addProblem(problem: Problem) {
+      const options = { headers: new HttpHeaders({'Content-Type': 'application/json' })};
+      return this.httpClient.post('api/v1/problems', problem, options)
+        .toPromise()
+        .then((res: any) => {
+          this.getProblems();
+          return res;
+        })
+        .catch(this.handleError);
+    }
 
   private handleError(error: any): Promise<any> {
     return Promise.reject(error.body || error);

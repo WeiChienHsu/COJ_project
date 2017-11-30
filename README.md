@@ -1059,6 +1059,28 @@ import 'rxjs/add/operator/toPromise';
 
 ### addProblem
 
-- Since we need to send a POST request to API, we need to give a hearder first (Content-Type)
+- Since we need to send a POST request to API, we need to give a hearder first (Content-Type).
+
+- Post Request will send url+body+header and a callback function
+
+- Call getProblems: since frontend won't know the change of database when we add a problem so after we update problem list, we need to call back new problem list in frontend
+
+```ts
+  addProblem(problem: Problem) {
+      const options = { headers: new HttpHeaders({'Content-Type': 'application/json' })};
+      return this.httpClient.post('api/v1/problems', problem, options)
+        .toPromise()
+        .then((res: any) => {
+          this.getProblems();
+          return res;
+        })
+        .catch(this.handleError);
+    }
+```
+
+## Run oj-client into Production
+- Set all UI documents will into publuc
+- In .angular-cli.json, change "outDir" to '../public'
+
 
 
