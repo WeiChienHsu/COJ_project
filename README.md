@@ -1082,5 +1082,45 @@ import 'rxjs/add/operator/toPromise';
 - Set all UI documents will into publuc
 - In .angular-cli.json, change "outDir" to '../public'
 
+## Change Problem-list.component from sync to async (同步 -> 異步) and add Subscription
+
+- Import OnDestroy/Subscription
+- subcribe when OiInit, then when the problem data change, our frontend will know
+
+```ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
+```
+
+- subscription 
+```ts
+subscriptionProblems: Subscription;
+```
+
+- Oninit
+- OnDestroy
+
+```ts
+  ngOnInit() {
+    this.getProblems();
+  }
+
+  ngOnDestroy(){
+    this.subscriptionProblems.unsubscribe();
+  }
+```
+
+- change the getProblem from sync to async
+```ts
+  getProblems(): void{
+    this.subscriptionProblems = this.dataService.getProblems()
+      .subscribe(problems => this.problems = problems);
+  }
+
+```
+
+## Problem-detail
+
+
 
 

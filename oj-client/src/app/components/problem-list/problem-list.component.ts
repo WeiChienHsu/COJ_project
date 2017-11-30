@@ -1,6 +1,7 @@
 import { DataService } from './../../services/data.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Problem } from '../../models/problem.model';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-problem-list',
@@ -10,14 +11,20 @@ import { Problem } from '../../models/problem.model';
 
 export class ProblemListComponent implements OnInit {
   problems: Problem[];
+  subscriptionProblems: Subscription;
   constructor(private dataService: DataService) { }
 
   ngOnInit() {
     this.getProblems();
   }
 
+  ngOnDestroy(){
+    this.subscriptionProblems.unsubscribe();
+  }
+
   getProblems(): void{
-    this.problems = this.dataService.getProblems();
+    this.subscriptionProblems = this.dataService.getProblems()
+      .subscribe(problems => this.problems = problems);
   }
 
 }
