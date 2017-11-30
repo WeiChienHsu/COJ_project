@@ -1,4 +1,37 @@
 # COJ_project
+
+
+╔══════════════════════╗        ╔═══════════╗ 
+║ App.component.html.ts║-------➡║ index.html║-------
+╚══════════════════════╝        ╚═══════════╝       |
+    ↗         ↖                                     |
+╔════════╗   ╔════════╗                             |
+║ Navbar ║   ║ Router ║                             |
+╚════════╝   ╚════════╝                             |
+                  ↗    ↖                            |
+╔══════════════════════╗ ╔═══════════════════════╗  |
+║ ProblemListCompinent ║ ║ ProblemDetailComponent║  |
+╚══════════════════════╝ ╚═══════════════════════╝  |
+        ↗                ⬊      ↓ onInit function   |
+╔══════════════════════╗   ╔════════════╗           |
+║  NewProblemCompinent ║ ➡ ║ DataService║           |
+╚══════════════════════╝   ╚════════════╝           |
+              (api Request)  ↑  ↓           ╔═══════════╗
+-----------------------------↑  ↓ --------  ║public/    ║
+                             ↑    ⬊         ║ index.html║
+                             ↑       ⬊      ╚═══════════╝
+╔══════════════╗     ╔═══════════╗    ⬊    ↗  Index   
+║ProblemService║ ↔↔↔ ║Rest Router║    ↓    ↑    Router
+╚══════════════╝     ║  rest.js  ║   ╔═══════════╗
+    ↓↑               ╚═══════════╝ ↖ ║ Server.js ║
+    ↓↑                               ╚═══════════╝
+    ↓↑                                     ║
+╔══════════════╗      ╔══════════╗ connect ║ 
+║ ProblemModel ║  ←←← ║ MongoDB  ║ ════════╝ 
+╚══════════════╝      ╚══════════╝
+
+
+
 # Week1
 ***
 ## Document Introduction
@@ -1078,9 +1111,7 @@ import 'rxjs/add/operator/toPromise';
     }
 ```
 
-## Run oj-client into Production
-- Set all UI documents will into publuc
-- In .angular-cli.json, change "outDir" to '../public'
+
 
 ## Change Problem-list.component from sync to async (同步 -> 異步) and add Subscription
 
@@ -1120,7 +1151,73 @@ subscriptionProblems: Subscription;
 ```
 
 ## Problem-detail
+- getProblem callback is a Promise, we need to change how onInit works.
 
+```ts
+  ngOnInit() {
+    this.route.params.subscribe(params => {
+      this.dataService.getProblem(+params['id'])
+        .then(problem => this.problem = problem)
+    });
+```
 
+## New Problem
+- Dont need to change, we didn't use the data from database
 
+## Run oj-client into Production
+- Set all UI documents will into publuc
+- In .angular-cli.json, change "outDir" to '../public'
+- in Oj-client, and heres a public file
+
+```
+ng build
+```
+
+## Add a logic to connect oj-server and index.html
+
+- In server.js, add another router to deal with pade localhost3000
+```js
+app.use('/', indexRouter);
+```
+
+- In index.js, use "Path" from nodeJS to get the content from public when someone send a request asking localhost3000
+```js
+const express = require('express');
+const router = expree.Router();
+const path = require('path');
+
+router.get('/', (req, res) => {
+    res.sendFile('index.html', {root: path.join(__dirname, '../../public/')});
+});
+
+module.exports = router;
+```
+
+## Face an Error
+- Fail to load the static files such as JS, CSS, HTML
+
+```
+localhost/:13 GET http://localhost:3000/inline.bundle.js net::ERR_ABORTED
+localhost/:13 GET http://localhost:3000/polyfills.bundle.js net::ERR_ABORTED
+localhost/:13 GET http://localhost:3000/scripts.bundle.js net::ERR_ABORTED
+localhost/:13 GET http://localhost:3000/styles.bundle.js net::ERR_ABORTED
+localhost/:13 GET http://localhost:3000/vendor.bundle.js net::ERR_ABORTED
+localhost/:13 GET http://localhost:3000/main.bundle.js net::ERR_ABORTED
+```
+- Give a path
+```js
+const path = require('path');
+
+app.use(express.static(path.join(__dirname, '../public/')));
+
+```
+
+## Frontend Client Routing
+- Server couldn't deal with frontend router
+- After finishing indexRouter and restRouter logic, backend will directly send back the index.html nomether what request fronend (client) send
+```js
+app.use((req, res) => {
+    res.sendFile('index.html', {root: path.join(__dirname, '../public/')})
+})
+```
 
