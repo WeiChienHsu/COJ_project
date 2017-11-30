@@ -585,3 +585,453 @@ npm install --save font-awesome
  </div> <!-- /.social-icons -->
 </div>  
 ```
+***
+***
+
+
+
+
+
+# Week 2
+## Copy Week1 to Week2 (for homework)
+```
+cp -R week1 week2
+```
+
+## Initialize oj-server
+
+```
+mkdir oj-server
+```
+- Add scripts > "start": "node server.js"
+
+```json
+"scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+
+```
+- initize npm
+```
+npm init
+```
+- Add .gitignore
+```
+touch .gitignore
+```
+```
+# dependencies
+/node_modules
+```
+- install express
+```
+npm install express --save
+```
+## Create a RESTful API Server (Feature)
+- User can GET and POST problems from server using RESTful API
+
+### STEP 1
+* Handle server-side routing
+* Create server.js
+* Start project with nodemon
+
+### STEP 2
+* GET /api/v1/problems (get all problems)
+* GET /api/v1/problems/:id (get problem by id)
+* POST /api/v1/problems (add a new problem)
+
+### STEP 3
+* Add Router to server.js
+
+### STEP 4
+* Create problemService to READ/WRITE the problem data (Mock data)
+
+### STEP 5
+* Test with POSTMAN
+
+### STEP 6
+* Handle GET /api/v1/problems/:id
+* Handle POST /api/vi/problems requests
+* npm install body-parser --save
+
+## STEP 7
+* Test with POSTMAN
+
+## Set up EXPRESS
+- open server.js file and C&P init document
+```js
+const express = require('express')
+const app = express()
+
+app.get('/', (req, res) => res.send('Hello World!'))
+
+app.listen(3000, () => console.log('Example app listening on port 3000!'))
+```
+
+## Design API
+- give a ROUTER to deal with specific stuff then we can clearify what the requests are asked for easier
+
+```js
+app.use('/api/v1', restRouter);
+```
+
+- Open a folder "routes" to deal with all routing problem
+- add new file "rest.js" (writting in express)
+
+```
+mkdir routes
+touch routes/rest.js
+```
+
+## rest.js
+
+```js
+const express = require('express');
+const router = express.Router();
+const problemService = require('../services/problemService');
+```
+
+- Don't need to write /api/vi since we have alrady set up by useing "app.use" in server.js
+- Add a promise
+- For example, get a request of "getProblem()" and send a problems out
+
+```js
+router.get('/problems', (req, res) => {
+    problemService.getProblems()
+        .then(problems => res.json(problems));
+});
+
+```
+
+- Export router
+```js
+module.exports = router;
+```
+
+- in server.js, import restRouter
+```js
+const restRouter = require('./routes/rest.js');
+```
+
+## Build up a problemService
+### getPorblems()
+- To deal with data, we need a problemService to connect with our router
+```
+mkdir services
+touch services/problemService.js
+```
+- Add a mock data since we haven't touch database
+```js
+problems = [
+  ....
+]
+```
+
+- Give a function to get Problems and export it.
+```js
+const getProblems = function(){
+    console.log('In the problem service get problems')
+    return new Promise((resolve, reject) => {
+        resolve(problems);
+    })
+}
+
+const getProblem = function(){}
+
+module.exports = {
+    getProblems,
+    getProblem
+}
+```
+
+### getPorblem()
+#### rest.js
+- In rest.js, given a request parameter(id) to getProblem() in problemService to catch the problem we needed
+- give a + to change id from string into number
+
+```js
+router.get('/problems/:id', (req, res) =>{
+    const id = req.params.id;
+    problemService.getProblem(+id)
+        .then(problem => res.json(problem))
+} )
+```
+#### problemService.js
+- In problemService.js
+```js
+const getProblem = function(id){
+    console.log("In the problem service get single problem");
+    return new Promise((resolve, reject) => {
+        resolve(problems.find(problem => problem.id === id));
+    });
+}
+```
+
+### PostPorblems()
+- Body Parser (jsonparser) help to take JSON object from body for sending POST request.
+- In rest.js
+```
+npm install body-parser --save
+```
+```js
+const bodyParser = require('body-parser');
+const jsonParser = bodyParser.json();
+```
+- Post Problem
+- Need a jsonParser as a middleware to transfer "req.body" into JSON object
+
+```js
+router.post('/problems',jsonParser, (req, res) => {
+    problemService.addProblem(req.body)
+        .then(problem => { //resolve
+            res.json(problem);
+        },(error) => { //reject
+            res.status(400).send('Problem name already exists!');
+        })
+})
+
+```
+- Add addProblem function in problemService
+```js
+const addProblem = function(newProblem){
+    return new Promise((resolve, reject) => {
+        if (problems.find(problem => problem.name === newProblem.name)){
+            reject('Problem already exists!');
+        } else {
+            newProblem.id = problems.length + 1;
+            problems.push(newProblem);
+            resolve(newProblem);
+        }
+    });
+}
+```
+
+
+## Testing by POSTMAN
+- GET problem by typing in address and it'll send out out mock data in JSON
+- Reject : frontend will have a handler such as the same JS promise
+```
+"http://localhost:3000/api/v1/problems"
+```
+
+- POST problem will be send as a JOSN file in body and then we need to use body-parser to read the content in backend
+- Send a JOSN object POST request by Postman
+* Same name sent, should respone "Problem name already exists!"
+```js
+{
+	    "name": "3Sum",
+        "desc": "Given an array S of n integers, are there elements a, b, c in S such that a + b + c = 0? Find all unique triplets in the array which gives the sum of zero.",
+        "difficulty": "medium"
+}
+``` 
+
+* Post a right request will respone right messages with new id
+```js
+{
+    "name": "31Sum",
+    "desc": "Given an array S of n integers, are there elements a, b, c in S such that a + b + c = 0? Find all unique triplets in the array which gives the sum of zero.",
+    "difficulty": "medium",
+    "id": 6
+}
+```
+***
+
+## Integrate MongoDB
+### Step 1
+- Register an account on mLab and create a database
+
+### Step 2
+- Install mongoose and connect to MongoDB on mLab
+```
+npm install mongoose --save
+```
+
+### Step 3
+- Add schema problemModel
+
+### Step 4
+- refactor problemService to READ/WRITE data FROM/TO MongoDB
+
+## Mongoose Connecting
+- Reqire and connect mongoose
+- server.js
+```ts
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://user:user@ds123976.mlab.com:23976/cs503-1705test');
+```
+
+## Build up a Schema for frontend to read
+```
+mkdir models
+touch models/problemModel.js
+```
+
+- problemModel.js
+```js
+const mongoose = require('mongoose');
+const ProblemSchema = mongoose.Schema({
+    id: Number,
+    name: String,
+    desc: String,
+    diff: String
+});
+
+const ProblemModel = mongoose.model('ProblemModel', ProblemSchema);
+module.exports = ProblemModel;
+```
+
+## Use data from MongoDB
+- In problemService, we need to get problem from database
+
+- No longer need the old getProblem function since it gets problem from our mock data.
+
+- Directly get problems from database
+
+- ProblemModel.find(condition, callback[err, data]) : no condition and callback first deal with error and reject or resolve(send back) the data
+
+### getProblems
+- findOne({id: neameYouInput}, (err, problem))
+```js
+const getProblem = function(id){
+    return new Promise((resolve, reject) => {
+        ProblemModel.findOne({id: id}, (err, problem) => {
+            if (err) {
+                console.log("In the problem service get problem");
+                reject(err);
+            } else {
+                resolve(problem);
+            }
+        });
+    });
+}
+```
+
+### getProblem
+```js
+const getProblem = function(id){
+    return new Promise((resolve, reject) => {
+        ProblemModel.findOne({id: id}, (err, problem) => {
+            if (err) {
+                console.log("In the problem service get problem");
+                reject(err);
+            } else {
+                resolve(problem);
+            }
+        });
+    });
+}
+```
+
+### addProblem
+- If found a same id which means the data exist, we need to reject
+- Count the problems and assign a new id
+- Create a mongoProblem for sending data to MongoDB (use mongoProblem.save())
+
+```js
+const addProblem = function(newProblem){
+    return new Promise((resolve, reject) => {
+        ProblemModel.findOne({name: newProblem.name}, (err, data) => {
+            if (data) { 
+                // find a same id
+                reject('Problem already exists!');
+            } else {
+                ProblemModel.count({}, (err, count) => {
+                    newProblem.id = count + 1;
+                    //Save into MongoDB
+                    const mongoProblem = new ProblemModel(newProblem);
+                    mongoProblem.save();
+                    resolve(mongoProblem);
+                });
+            }
+        });
+    });
+}
+```
+***
+
+## Connect 
+
+### STEP 1  
+- Refactor client-side data.service to async 
+- in app.module.ts
+- import HttpClientModule
+
+### STEP 2
+- Refactor all components calling data.service
+- Problem-list.component.ts
+- Problem-detail.component.ts
+- New-Problem.component.ts
+
+### STEP 3 
+- Update .angualr-cli.json, change location of ourDir
+- In the future, you can use ng build -- watch in/ oj-client, we are not using localhost:4200 anymore
+- 
+### STEP 4
+- Send static web pages from server to browser
+
+### STEP 5
+- Solve "refresh" issue
+
+## Refactor client-side data.service
+
+- Call out DataService which used to connect with mock data
+- Http Module (in app.module)
+
+```ts
+import { HttpClientModule } from '@angular/common/http';
+
+  imports: [
+    BrowserModule,
+    routing,
+    FormsModule,
+    HttpClientModule
+  ],
+```
+- Import HttpClient, HttpHeaders, HttpResponse:
+
+- Observable: Observe Data Flow. Non-stop sending data, with Values, Complete, Arror. 
+
+- BehaviorSubject: Always exist.
+
+```ts
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { Observable } from 'rxjs/Rx';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import 'rxjs/add/operator/toPromise';
+```
+
+- No longer need the mock problem and change it to the problemSource putting all problems inside and marks it as private
+
+```ts
+ // problems: Problem[] = PROBLEMS;
+
+  private _problemSource = new BehaviorSubject<Problem[]>([]);
+
+```
+
+- Register Angular HttpClient
+```ts
+ constructor(private HttpClient: HttpClient) { }
+```
+
+- Call Api v1, Endpoint ('api/v1/problem');
+```ts
+  getProblems():Observable<Problem[]>{
+    this.httpClient.get('api/v1/problems')
+      .toPromise()
+      .then((res: any) => {
+        this._problemSource.next(res);
+      })
+      .catch(this.handleError);
+      return this._problemSource.asObservable();
+  }
+```
+
+- Create a function to handle Error
+```ts
+  private handleError(error: any): Promise<any> {
+    return Promise.reject(error.body || error);
+  }
+```
