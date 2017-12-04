@@ -1,6 +1,6 @@
+import { CollaborationService } from '../../services/collaboration.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-
 
 declare const ace: any;
 @Component({
@@ -23,13 +23,14 @@ export class EditorComponent implements OnInit {
    def example():
        # Write your Python code here`
   };
-  constructor() { }
+  constructor( private collaboration: CollaborationService) { }
 
   ngOnInit() {
     this.editor = ace.edit("editor");
     this.editor.setTheme("ace/theme/eclipse");
     this.resetEditor();
     this.editor.$blockScrolling = Infinity;
+    this.collaboration.init();
   }
 
 

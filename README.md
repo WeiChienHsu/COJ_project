@@ -1246,3 +1246,323 @@ app.use((req, res) => {
 - Establish socket connection
 - Synchronize the editor buffer content
 - Store and restore socket sessions with Redis
+
+## Reference
+
+- [ACE](https://ace.c9.io/#nav=api&api=editor)
+
+- [Socket.io](https://socket.io/docs/) 
+
+- [Socket.io client](https://socket.io/docs/client-api/)
+
+- [Socket.io server](https://socket.io/docs/server-api/)
+
+## Before Editting
+-Copy the week2 code
+
+```
+cp -r week2 week3
+```
+
+- Create Editor Component
+```
+ng g c editor
+```
+
+## Add Editor
+- In porblem details html
+- Hidden in x samll screen
+```
+  <div class="hidden-xs col-md-8">
+    <app-editor></app-editor>
+  </div>
+```
+
+## ACE Editor
+- Install package
+```
+npm install --save ace-builds
+```
+- Add JS packages in .angular-cli
+- src-min-noconflict for not conflicting
+```json
+      "scripts": [
+        "../node_modules/jquery/dist/jquery.js",
+        "../node_modules/bootstrap/dist/js/bootstrap.js",
+        "../node_modules/ace-builds/src-min-noconflict/ace.js",
+        "../node_modules/ace-builds/src-min-noconflict/mode-java.js",
+        "../node_modules/ace-builds/src-min-noconflict/mode-python.js"
+      ],
+```
+## Editor Styling
+- Declare ace in component.ts
+```ts
+declare const ace: any;
+```
+- Add Script in "ngOnInit()"
+- set a editor value
+- Add an editor variable inside class
+```ts
+  export class EditorComponent implements OnInit {
+  editor: any;
+
+  ngOnInit() {
+    this.editor = ace.edit("editor");
+    this.editor.setTheme("ace/theme/eclipse");
+    this.editor.getSession().setMode("ace/mode/java");
+    this.editor.setValue(this.defaultContent['Java'])
+  }
+```
+
+- Add Default Content
+```ts
+defaultContent = {
+   'Java': `public class Example {
+     public static void main(String[] args) {
+         // Type your Java code here
+     }
+   }`,
+   'Python': `class Solution:
+   def example():
+       # Write your Python code here`
+  };
+```
+
+- HTML
+```html
+<div id="editor"></div>
+```
+- CSS
+- media: screen
+```css
+@media screen {
+    #editor {
+        height: 600px;
+    }
+}
+```
+- Styling
+```css
+#editor {
+      height: 600px;
+    }
+    .lang-select {
+      width: 100px;
+      margin-right: 10px;
+    }
+    header .btn {
+      margin: 0 5px;
+    }
+    footer .btn {
+      margin: 0 5px;
+    }
+    .editor-footer, .editor-header {
+      margin: 10px 0;
+    }
+    .cursor {
+      /*position:absolute;*/
+      background: rgba(0, 250, 0, 0.5);
+      z-index: 40;
+      width: 2px !important;
+    }
+```
+
+## Add DropDown in Editor
+
+- Choose language
+- setLanguage()
+```html
+<section>
+<header class="editor-header">
+    <select class="form-control pull-left lang-select" name="language"
+    [(ngModel)]="language" (change)="setLanguage(language)">
+        <option *ngFor="let language of languages" [value]="language">
+            {{language}}
+        </option>
+    </select>
+```
+
+- Reset Button
+```html
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+    Reset
+    </button>
+```
+- Modal Dalogue
+- With reset editor()
+```html
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Are you sure</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            You will lose current code in the editor, are you sure?
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal"
+            (click)="resetEditor()">Reset</button>
+        </div>
+        </div>
+    </div>
+    </div>
+</header>
+```
+
+- Editor inside Row
+```html
+<div class="row">
+    <div id="editor"></div>
+</div>
+```
+
+- Submit button
+```html
+<footer class="editor-footer">
+    <button type="button" class="btn btn-success pull-right" 
+    (click)="submit()">Submit Solution</button>
+</footer>
+</section>
+```
+
+## Add methods in editor component
+- Setup languages and default language
+```ts
+  languages: string[] = ['Java', 'Python'];
+  language: string = 'Java';
+```
+- resetEditor
+```ts
+  resetEditor(): void {
+    this.editor.setValue(this.defaultContent[this.language]);
+  }
+```
+
+- setLanguage
+```ts
+  setLanguage(language: string): void{
+    this.language = language;
+    this.resetEditor();
+  }
+```
+- subimt
+```ts
+  submit(): void{
+    const userCode = this.editor.getValue();
+    console.log(userCode); // temp
+  }
+```
+
+## Refactor editor logic
+- call resetEditor when Oninit
+- move the getSession function to reset function and change its theme based on language we chose
+```ts
+  ngOnInit() {
+    this.editor = ace.edit("editor");
+    this.editor.setTheme("ace/theme/eclipse");
+    this.resetEditor();
+    this.editor.$blockScrolling = Infinity;
+  }
+
+    resetEditor(): void {
+    this.editor.setValue(this.defaultContent[this.language]);
+    this.editor.getSession().setMode("ace/mode/" + this.language.toLocaleLowerCase());
+  }
+  ```
+***
+
+# Socket
+## Client Socket
+- Install socket.io
+```
+npm install --save socket.io
+```
+
+### Cleint side will have a collaboration service deals with server
+- Add module in client side and add in app.module
+```
+ng g s collaboration
+```
+
+- App.module
+
+```
+  providers: [
+    DataService,
+    CollaborationService
+  ],
+```
+- .angular-cli
+```json
+"../node_modules/socket.io-client/dist/socket.io.js"
+```
+
+- collaboration.service
+- Every times when you connect, socket send a message to window.location.origin (Backend server Endpoint)
+```ts
+init(): void {
+    this.collaborationSocket = io(window.location.origin, {query: "message=" + "haha"});
+```
+
+- Add Event handler to receive message
+```ts
+    this.collaborationSocket.on('message', (message) => {
+      console.log('message received from server' + message);
+    });
+```
+
+- Import Collaboration Service in editor component, when editor init, it will call an collaboration.init() function
+```ts
+constructor( private collaboration: CollaborationService) { }
+
+ngOnInit(){
+  this.collaboration.init();
+}
+```
+
+## Server Socker
+- Install socket.io
+```
+npm install --save socket.io
+```
+- Open a file for editor Socket Service
+```
+touch editorSocketService.js
+```
+- Receive message from client
+```js
+module.exports = function(io){
+    io.on('connection', (socket) => {
+        console.log(socket);
+        const message = socket.handshake.query['message'];
+        console.log(message);
+```
+
+- Send back message to client
+
+```js
+io.to(socket.id).emit('message', 'hehe from server');
+```
+- Build up a Http server in server.js
+```js
+const http = require('http');
+const socketIO = require('socket.io');
+const io = socketIO();
+const editorSocketService = require('./services/editorSocketService')(io);
+```
+- Open a new line for server
+```js
+const server = http.createServer(app);
+io.attach(server);
+server.listen(3000);
+server.on('listening', onListening);
+
+function onListening(){
+    console.log('App listening on port 3000')
+}
+```
