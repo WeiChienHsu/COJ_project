@@ -6,11 +6,12 @@ export class CollaborationService {
   collaborationSocket: any
   constructor() { }
 
-  init(): void {
-    this.collaborationSocket = io(window.location.origin, {query: "message=" + "haha"});
-    this.collaborationSocket.on('message', (message) => {
-      console.log('message received from server' + message);
-    });
+  init(editor: any, sessionId: string): void {
+    this.collaborationSocket = io(window.location.origin, {query: "sessionId=" + sessionId});
+  }
+
+  change(delta: string): void {
+    this.collaborationSocket.emit('change', delta);
   }
 
 }

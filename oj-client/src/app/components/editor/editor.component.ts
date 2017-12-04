@@ -9,7 +9,7 @@ declare const ace: any;
   styleUrls: ['./editor.component.css']
 })
 export class EditorComponent implements OnInit {
-
+  sessionId: string;
   languages: string[] = ['Java', 'Python'];
   language: string = 'Java';
   editor: any;
@@ -23,14 +23,34 @@ export class EditorComponent implements OnInit {
    def example():
        # Write your Python code here`
   };
-  constructor( private collaboration: CollaborationService) { }
+  constructor( private collaboration: CollaborationService,
+               private route: ActivatedRoute) { }
 
   ngOnInit() {
+    this.route.params
+     .subscribe(params => {
+       this.sessionId = params['id'];
+       this.initEditor();
+     });
+  }
+
+  initEditor(){
     this.editor = ace.edit("editor");
     this.editor.setTheme("ace/theme/eclipse");
     this.resetEditor();
     this.editor.$blockScrolling = Infinity;
-    this.collaboration.init();
+    // set up collaboration secket
+    this.collaboration.init(this.editor, this.sessionId);
+    this.editor.lastAppliedChange = null;
+    
+    // register changne callback
+    this.editor.on('change', (e) => {
+      console.log('editor change' + JSON.stringify(e));
+      if (this.editor.lastAppliedChange != e) {
+        this.collaboration.change(JSON.stringify(e));
+      }
+    })
+
   }
 
 

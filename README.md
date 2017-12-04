@@ -1566,3 +1566,82 @@ function onListening(){
     console.log('App listening on port 3000')
 }
 ```
+
+## After testing, refactor console.log
+
+
+## Get the session_id to server
+- Edit Component get a "session id" from activeRoute (the same way we get that id from problem list to problem detail)
+
+- Send id to collaboration service to tell where Url the user now located
+
+- Collaboratoin will send the same information to editorSocketService
+
+### Eidtor Component
+- Import
+```ts
+import { ActivatedRoute, Params } from '@angular/router';
+```
+```ts
+export class EditorComponent implements OnInit {
+  sessionId: string;
+
+  constructor( private collaboration: CollaborationService,
+  private route: ActivatedRoute) { }
+
+  
+```
+- In ngOnInit, get id first by route params and call initEditor (Make those methods a function)
+- Send editor and session id when using clollaboration init
+- add lastAppliedChange in editor to set up collaboration socket
+- Register change callback
+```ts
+  ngOnInit() {
+    this.route.params
+     .subscribe(params => {
+       this.sessionId = params['id'];
+       this.initEditor();
+     });
+  }
+```
+
+```ts
+initEditor(){
+    this.editor = ace.edit("editor");
+    this.editor.setTheme("ace/theme/eclipse");
+    this.resetEditor();
+    this.editor.$blockScrolling = Infinity;
+    // set up collaboration secket
+    this.collaboration.init(this.editor, this.sessionId);
+    this.editor.lastAppliedChange = null;
+    
+    // register changne callback
+    this.editor.on('change', (e) => {
+      console.log('editor change' + JSON.stringify(e));
+      if (this.editor.lastAppliedChange != e) {
+        this.collaboration.change(JSON.stringify(e));
+      }
+    })
+
+  }
+  ```
+
+  ## Collaboration Service
+  - Send in both editor and sessionId to service
+  - service listen to editor component, when there's a chagne message sent in, show the change in editor(in editor component) and send the chagne delta to Server (in collaboration service)
+
+```ts
+  init(editor: any, sessionId: string): void {
+    this.collaborationSocket = io(window.location.origin, {query: "sessionId=" + sessionId});
+    this.collaborationSocket.on('change', (delta: string) => {
+      delta = JSON.parse(delta);
+      editor.lastAppliedChange = delta;
+      editor.getSession().getDocument().applyDeltas([delta]);
+    });
+  }
+
+  change(delta: string): void {
+    this.collaborationSocket.emit('change', delta);
+  }
+
+```
