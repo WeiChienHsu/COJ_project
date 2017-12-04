@@ -1,5 +1,5 @@
 <section>
-<header class="editor-header">
+  <header class="editor-header">
     <select class="form-control pull-left lang-select" name="language"
     [(ngModel)]="language" (change)="setLanguage(language)">
         <option *ngFor="let language of languages" [value]="language">
@@ -38,8 +38,8 @@
     <div id="editor">
     </div>
 </div><!-- This is the body -->
-<footer class="editor-footer">
+  <footer class="editor-footer">
     <button type="button" class="btn btn-success pull-right" 
     (click)="submit()">Submit Solution</button>
-</footer>
+  </footer>
 </section>
