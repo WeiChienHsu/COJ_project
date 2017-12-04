@@ -1591,10 +1591,15 @@ export class EditorComponent implements OnInit {
 
   
 ```
-- In ngOnInit, get id first by route params and call initEditor (Make those methods a function)
-- Send editor and session id when using clollaboration init
+- In ngOnInit, get id first by route params senging into "sessionId" and call initEditor (Make those methods a function)
+
+- Send editor and session id when using clollaboration init 
+
+- collaboration.init(this.editor, this.sessionId)
+
 - add lastAppliedChange in editor to set up collaboration socket
-- Register change callback
+
+- When there's change happened ,register change callback --> to collaboration.service
 ```ts
   ngOnInit() {
     this.route.params
@@ -1628,6 +1633,7 @@ initEditor(){
 
   ## Collaboration Service
   - Send in both editor and sessionId to service
+
   - service listen to editor component, when there's a chagne message sent in, show the change in editor(in editor component) and send the chagne delta to Server (in collaboration service)
 
 ```ts
@@ -1639,9 +1645,67 @@ initEditor(){
       editor.getSession().getDocument().applyDeltas([delta]);
     });
   }
+```
+- Also, send the change to Server by sockets
 
+```ts
   change(delta: string): void {
     this.collaborationSocket.emit('change', delta);
   }
-
 ```
+- delta
+```
+editor change{"start":{"row":6,"column":4},"end":{"row":6,"column":5},"action":"insert","lines":["a"]}
+```
+
+## Server side - editorSocketService
+- collaborations to record who is in this problem
+
+- receive message from collaboration "{query: "sessionId=" + sessionId}", and save into sessionId
+
+- save sessionId into socket.id (user)
+
+- if sessionId is the first one which means not in collaboration, creates a new collaboration oject with participants
+
+- If the sessionId is in collaboration, add sockt.id into participants
+
+```js
+module.exports = function(io){
+    //collaboration sessions
+    const collaborations = {};
+    // map form socketId to sessionId
+    const socketIdToSessionId = {};
+
+    io.on('connection', (socket) => {
+        const sessionId = socket.handshake.query['sessionId'];
+        socketIdToSessionId[socket.id] = sessionId;
+
+        if (!sessionId in collaborations) {
+            collaborations[sessionId] = {
+                'participants':[]
+            };
+        }
+        collaborations[sessionId]['participants'].push(socket.id);
+    });
+}
+```
+
+- If Service revceive change, save the sessionId and array of participants. Then, send the changes to all participants.
+```js
+
+  socket.on('change', delta => {
+      const sessionId = socketIdToSessionId[socket.id];
+      if (sessionId in collaborations){
+          const participants = collaborations[sessionId]['participants'];
+          for (let participant of participants) {
+              if (socket.id !== participant){
+                  io.to(participant).emit('change', delta)
+              }
+          }
+      } else {
+          console.error('error')
+      }
+  });
+```
+
+## Buffer Synchrnize

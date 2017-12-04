@@ -695,7 +695,14 @@ var CollaborationService = (function () {
     }
     CollaborationService.prototype.init = function (editor, sessionId) {
         this.collaborationSocket = io(window.location.origin, { query: "sessionId=" + sessionId });
+        // listener
+        this.collaborationSocket.on('change', function (delta) {
+            delta = JSON.parse(delta);
+            editor.lastAppliedChange = delta;
+            editor.getSession().getDocument().applyDeltas([delta]);
+        });
     };
+    // Send to server.js
     CollaborationService.prototype.change = function (delta) {
         this.collaborationSocket.emit('change', delta);
     };
