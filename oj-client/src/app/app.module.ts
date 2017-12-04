@@ -12,6 +12,7 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 import { FooterComponent } from './components/footer/footer.component';
 
 import { HttpClientModule } from '@angular/common/http';
+import { EditorComponent } from './components/editor/editor.component';
 
 
 @NgModule({
@@ -22,7 +23,8 @@ import { HttpClientModule } from '@angular/common/http';
     SummaryPipe,
     NewProblemComponent,
     NavbarComponent,
-    FooterComponent
+    FooterComponent,
+    EditorComponent
   ],
   imports: [
     BrowserModule,
