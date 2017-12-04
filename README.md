@@ -1239,3 +1239,10 @@ app.use((req, res) => {
 
 # Week 3
 
+- Create Editor Component
+- Embedding Ace Editor (third party)
+- Add language select, reset and submit buttons
+- Install socket.io on oj-client and oj-server
+- Establish socket connection
+- Synchronize the editor buffer content
+- Store and restore socket sessions with Redis
