@@ -1890,3 +1890,202 @@ socket.on('disconnrect', () => {
 });
 
 ```
+
+***
+
+### editorSocketService.js
+
+```js
+const redisClient = require('../modules/redisClient');
+const TIMEOUT_IN_SECONDS = 3600;
+module.exports = function(io){
+//collaboration sessions
+const collaborations = {};
+// map form socketId to sessionId
+const sessionPath = '/temp_sessions/';
+const socketIdToSessionId = {};
+io.on('connection', (socket) => {
+    const sessionId = socket.handshake.query['sessionId'];
+    socketIdToSessionId[socket.id] = sessionId;   
+    // Scession id in collaborations 
+    if (sessionId in collaborations) {
+        collaborations[sessionId]['participants'].push(socket.id);
+    } else {
+        redisClient.get(sessionPath + '/' + sessionId, data => {
+            if (data) { // there is data in radis
+                console.log('session terminated perviously, pulling back from redis');
+                collaborations[sessionId] = {
+                    'cachaedInstructions' : JSON.parse(data),
+                    'participants': []
+                }
+            } else { // create a new collaboration
+                console.log('creating new session');
+                collaborations[sessionId] = {
+                    'cachaedInstructions' : [],
+                    'participants': []  
+                }
+            }
+            collaborations[sessionId]['participants'].push(socket.id);
+        });
+    }
+
+    socket.on('change', delta => {
+        const sessionId = socketIdToSessionId[socket.id];
+        if(sessionId in collaborations){
+            collaborations[sessionId]['cachaedInstructions'].push(['change', delta, Date.now()]);
+        }
+        if (sessionId in collaborations){
+            const participants = collaborations[sessionId]['participants'];
+            for (let participant of participants) {
+                if (socket.id !== participant){
+                    io.to(participant).emit('change', delta)
+                }
+            }
+        } else {
+            console.error('error')
+        }
+    });
+    // When client side call restore Buffer
+    socket.on('restoreBuffer', () => {
+        const sessionId = socketIdToSessionId[socket.id];
+        if (sessionId in collaborations) {
+            const instructions = collaborations[sessionId]['cachaedInstructions'];
+            for (let instruction of instructions) {
+                socket.emit(instruction[0], instruction[1]);
+            }
+        }
+    });
+    // When disconnect, save content in radis
+    socket.on('disconnrect', () => {
+        const sessionId = socketIdToSessionId[socket.id];
+        let foundAndRemove = false;
+        if (sessionId in collaborations) {
+            const participants = collaborations[sessionId]['participants'];
+            const index = participants.indexOf(socket.id);
+            if (index >= 0){
+                participants.slice(index, 1);
+                foundAndRemove = true;
+                if (participants.length === 0){ //last user
+                    const key = sessionPath + '/' + sessionId;
+                    const value = JSON.stringify(collaborations[sessionId]['cachaedInstructions']);
+                    redisClient.set(key, value, redisClient.redisPrint);
+                    redisClient.expire(key, TIMEOUT_IN_SECONDS);
+                    delete collaboraitons[sessionId];
+                }
+            }
+        }
+        if (!foundAndRemove) {
+            console.error('warning');
+        }
+    });
+});
+}
+```
+### collaboration.service.ts
+```ts
+import { Injectable } from '@angular/core';
+
+declare const io: any;
+@Injectable()
+export class CollaborationService {
+  collaborationSocket: any
+  constructor() { }
+
+  init(editor: any, sessionId: string): void {
+    this.collaborationSocket = io(window.location.origin, {query: "sessionId=" + sessionId});
+    // listener
+    this.collaborationSocket.on('change', (delta: string) => {
+      delta = JSON.parse(delta);
+      editor.lastAppliedChange = delta;
+      editor.getSession().getDocument().applyDeltas([delta]);
+    });
+  }
+  // Send to server.js
+  change(delta: string): void {
+    this.collaborationSocket.emit('change', delta);
+  }
+
+  // restore socket session
+  restoreBuffer():void{
+    this.collaborationSocket.emit('restoreBuffer');
+  }
+
+}
+
+```
+
+### editor.component.ts
+
+```ts
+import { CollaborationService } from '../../services/collaboration.service';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Params } from '@angular/router';
+
+declare const ace: any;
+@Component({
+  selector: 'app-editor',
+  templateUrl: './editor.component.html',
+  styleUrls: ['./editor.component.css']
+})
+export class EditorComponent implements OnInit {
+  sessionId: string;
+  languages: string[] = ['Java', 'Python'];
+  language: string = 'Java';
+  editor: any;
+  defaultContent = {
+   'Java': `public class Example {
+     public static void main(String[] args) {
+         // Type your Java code here
+     }
+   }`,
+   'Python': `class Solution:
+   def example():
+       # Write your Python code here`
+  };
+  constructor( private collaboration: CollaborationService,
+               private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    this.route.params
+     .subscribe(params => {
+       this.sessionId = params['id'];
+       this.initEditor();
+       this.collaboration.restoreBuffer();
+     });
+  }
+
+  initEditor(){
+    this.editor = ace.edit("editor");
+    this.editor.setTheme("ace/theme/eclipse");
+    this.resetEditor();
+    this.editor.$blockScrolling = Infinity;
+    // set up collaboration secket
+    this.collaboration.init(this.editor, this.sessionId);
+    this.editor.lastAppliedChange = null;
+    // register changne callback
+    this.editor.on('change', (e) => {
+      console.log('editor change' + JSON.stringify(e));
+      if (this.editor.lastAppliedChange != e) {
+        this.collaboration.change(JSON.stringify(e));
+      }
+    });
+  }
+  
+  resetEditor(): void {
+    this.editor.setValue(this.defaultContent[this.language]);
+    this.editor.getSession().setMode("ace/mode/" + this.language.toLowerCase());
+  }
+
+  setLanguage(language: string): void {
+    this.language = language;
+    this.resetEditor();
+  }
+
+  submit(): void {
+    const userCode = this.editor.getValue();
+    console.log(userCode);
+  }
+
+}
+
+```
