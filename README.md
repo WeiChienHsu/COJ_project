@@ -1236,6 +1236,9 @@ app.use((req, res) => {
 })
 ```
 ***
+***
+
+
 
 # Week 3
 
@@ -1476,7 +1479,8 @@ defaultContent = {
   ```
 ***
 
-# Socket
+# Synchronize the editor buffer content
+
 ## Client Socket
 - Install socket.io
 ```
@@ -1708,4 +1712,181 @@ module.exports = function(io){
   });
 ```
 
-## Buffer Synchrnize
+## Store and restore socket session with Redis 
+
+- collaboration service, when user
+```ts
+  restoreBuffer():void{
+    this.collaborationSocket.emit('restoreBuffer');
+  }
+```
+
+- editor component
+```ts
+this.collaboration.restoreBuffer();
+```
+
+## Install Redis
+- In Linus
+```
+wget http://download.redis.io/releases/redis-3.2.6.tar.gz
+tar xzf redis-3.2.6.tar.gz
+cd redis-3.2.6
+make
+sudo make install
+cd utils
+sudo ./install_server.sh`
+```
+
+- oj-server
+```
+npm install --save redis
+```
+
+- build up a dir modules -> redisClient.js
+```
+mkdir modules
+touch modules/redisClient.js
+```
+
+## redisClient
+
+```js
+const redis = require('redis');
+const client = redis.createClient();
+
+function set(key, value, callback) {
+    client.set(key, value, function(err, res) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        callback(res);
+    });
+}
+
+function get(key, callback) {
+    client.get(key, function(err, res) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        callback(res);
+    });
+}
+
+function expire(key, timeInSeconds) {
+    client.expire(key, timeInSeconds);
+}
+
+function quit() {
+    client.quit();
+}
+
+module.exports = {
+    get,
+    set,
+    expire,
+    quit,
+    redisPrint: redis.print
+}
+```
+
+## Import and build up redis client in editor Socket Service
+```js
+const redisClient = require('../modules/redisClient');
+const TIMEOUT_IN_SECONDS = 3600;
+```
+
+- module.exports
+```js
+const sessionPath = '/temp_sessions/';
+```
+## Logic in editorSocketService
+
+### Check if SessionId in collaborations
+
+- Find if user is the first one get into this problem by looking for collaborations (if there's another user) or for redis (in the timeset)
+
+```js
+if (sessionId in collaborations) {
+    collaborations[sessionId]['participants'].push(socket.id);
+} else {
+  redisClient.get(sessionPath + '/' + sessionId, data => {
+      if (data) { // there is data in radis
+          console.log('session terminated perviously, pulling back from redis');
+          collaborations[sessionId] = {
+              'cachaedInstructions' : JSON.parse(data),
+              'participants': []
+          }
+      } else { // create a new collaboration
+          console.log('creating new session');
+          collaborations[sessionId] = {
+              'cachaedInstructions' : [],
+              'participants': []  
+          }
+      }
+      collaborations[sessionId]['participants'].push(socket.id);
+  });
+}
+```
+### There's change happen
+
+- Add a cachaedInstructions if there is a sessionId in collaborations when there is a change message
+
+```js
+socket.on('change', delta => {
+    const sessionId = socketIdToSessionId[socket.id];
+    if(sessionId in collaborations){
+        collaborations[sessionId]['cachaedInstructions'].push(['change', delta, Date.now()]);
+    }
+```
+
+### Client call restore Buffer (Need to show data)
+
+- When Client side call restore Buffer, emit out all contents saved in redis
+- instruction[0] : change
+- instruction[1] : content
+```js
+socket.on('restoreBuffer', () => {
+    const sessionId = socketIdToSessionId[socket.id];
+    if (sessionId in collaborations) {
+        const instructions = collaborations[sessionId]['cachaedInstructions'];
+        for (let instruction of instructions) {
+            socket.emit(instruction[0], instruction[1]);
+        }
+    }
+});
+```
+
+### User disconnect
+
+- When disconnect, save content in radis
+- Remove user's sessionId from participants
+- See if the last user lefts (participants.length === 0)
+
+```js
+socket.on('disconnrect', () => {
+  const sessionId = socketIdToSessionId[socket.id];
+  let foundAndRemove = false;
+  if (sessionId in collaborations) {
+      const participants = collaborations[sessionId]['participants'];
+      const index = participants.indexOf(socket.id);
+      if (index >= 0){
+          participants.slice(index, 1);
+          foundAndRemove = true;
+          if (participants.length === 0){ //last user
+              const key = sessionPath + '/' + sessionId;
+              const value = JSON.stringify(collaborations[sessionId]['cachaedInstructions']);
+              redisClient.set(key, value, redisClient.redisPrint);
+              redisClient.expire(key, TIMEOUT_IN_SECONDS);
+              delete collaboraitons[sessionId];
+          }
+      }
+  }
+  if (!foundAndRemove) {
+      console.error('warning');
+  }
+});
+
+```

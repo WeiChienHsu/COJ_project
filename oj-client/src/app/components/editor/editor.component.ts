@@ -31,6 +31,7 @@ export class EditorComponent implements OnInit {
      .subscribe(params => {
        this.sessionId = params['id'];
        this.initEditor();
+       this.collaboration.restoreBuffer();
      });
   }
 
@@ -42,18 +43,15 @@ export class EditorComponent implements OnInit {
     // set up collaboration secket
     this.collaboration.init(this.editor, this.sessionId);
     this.editor.lastAppliedChange = null;
-    
     // register changne callback
     this.editor.on('change', (e) => {
       console.log('editor change' + JSON.stringify(e));
       if (this.editor.lastAppliedChange != e) {
         this.collaboration.change(JSON.stringify(e));
       }
-    })
-
+    });
   }
-
-
+  
   resetEditor(): void {
     this.editor.setValue(this.defaultContent[this.language]);
     this.editor.getSession().setMode("ace/mode/" + this.language.toLowerCase());

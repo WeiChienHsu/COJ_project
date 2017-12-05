@@ -20,4 +20,9 @@ export class CollaborationService {
     this.collaborationSocket.emit('change', delta);
   }
 
+  // restore socket session
+  restoreBuffer():void{
+    this.collaborationSocket.emit('restoreBuffer');
+  }
+
 }

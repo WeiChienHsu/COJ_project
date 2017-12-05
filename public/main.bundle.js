@@ -246,6 +246,7 @@ var EditorComponent = (function () {
             .subscribe(function (params) {
             _this.sessionId = params['id'];
             _this.initEditor();
+            _this.collaboration.restoreBuffer();
         });
     };
     EditorComponent.prototype.initEditor = function () {
@@ -705,6 +706,10 @@ var CollaborationService = (function () {
     // Send to server.js
     CollaborationService.prototype.change = function (delta) {
         this.collaborationSocket.emit('change', delta);
+    };
+    // restore socket session
+    CollaborationService.prototype.restoreBuffer = function () {
+        this.collaborationSocket.emit('restoreBuffer');
     };
     CollaborationService = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["A" /* Injectable */])(),
