@@ -1,25 +1,14 @@
 const redisClient = require('../modules/redisClient');
 const TIMEOUT_IN_SECONDS = 3600;
-
 module.exports = function(io){
     //collaboration sessions
     const collaborations = {};
     // map form socketId to sessionId
     const sessionPath = '/temp_sessions/';
     const socketIdToSessionId = {};
-
     io.on('connection', (socket) => {
         const sessionId = socket.handshake.query['sessionId'];
-        socketIdToSessionId[socket.id] = sessionId;
-
-        // if (!(sessionId in collaborations)) {
-        //     collaborations[sessionId] = {
-        //         'participants':[]
-        //     };
-        // }
-        // collaborations[sessionId]['participants'].push(socket.id);
-        
-        
+        socketIdToSessionId[socket.id] = sessionId;   
         // Scession id in collaborations 
         if (sessionId in collaborations) {
             collaborations[sessionId]['participants'].push(socket.id);
@@ -47,7 +36,6 @@ module.exports = function(io){
             if(sessionId in collaborations){
                 collaborations[sessionId]['cachaedInstructions'].push(['change', delta, Date.now()]);
             }
-            
             if (sessionId in collaborations){
                 const participants = collaborations[sessionId]['participants'];
                 for (let participant of participants) {
@@ -59,9 +47,7 @@ module.exports = function(io){
                 console.error('error')
             }
         });
-
         // When client side call restore Buffer
-
         socket.on('restoreBuffer', () => {
             const sessionId = socketIdToSessionId[socket.id];
             if (sessionId in collaborations) {
@@ -71,7 +57,6 @@ module.exports = function(io){
                 }
             }
         });
-
         // When disconnect, save content in radis
         socket.on('disconnrect', () => {
             const sessionId = socketIdToSessionId[socket.id];
