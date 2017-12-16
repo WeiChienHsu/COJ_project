@@ -1912,10 +1912,179 @@ cp -r week3 week4
 ## Show RESULT on UI
 #### Step1 : In editor, we need to display compile and execute output. Therefore, we need to add a div right after the ACE editor in editor component.
 
+### Client Side
+
+- In Editor Component htnl and ts
+```html
+    <div>
+        {{output}}
+    </div>
+```
+```ts
+   'Python': `class Solution:
+   def example():
+       # Write your Python code here`
+  };
+
+output: string = '';
+```
 
 #### Step2 : Build and Run are performed on server side. On the client side, we just make a service call and display the results. Here we call DataService to make the call.
-
 
 #### Step3: Add buildAndRun in DataService. Basically, it is just a post request to Node.js server then getting results. The target of post request is /api/vi/build_and_run
 - NoteL client doesn't know about executor, to client, it's only talking to the Node.js server
 
+
+- Send usercode and language datas to Server side (by DataService)
+```ts
+buildAndRun(data): Promise<any> {
+    const options = { headers: new HttpHeaders({ 'Content-Type': 'application/json'})};
+    return this.httpClient.post('api/v1/results', data, options)
+      .toPromise()
+      .then(res => {
+        console.log(res);
+        return res;
+      })
+      .catch(this.handleError);
+  }
+```
+
+- Import DataService in editor component and send out the userCodes and language data 
+- Also add in constructor
+- data as a JSON object sent to server side
+```ts
+  submit(): void {
+    const userCodes = this.editor.getValue();
+    const data = {
+      userCodes: userCodes,
+      lang: this.language.toLocaleLowerCase()
+    };
+  
+    this.dataService.buildAndRun(data)
+      .then(res => this.output = res.text);
+  }
+```
+
+```ts
+private dataService: DataService
+```
+### Server Side
+
+- Handle the Router in rest.js
+
+```js
+router.post('/results', jsonParser, (req, res) => {
+    const userCodes = req.body.userCodes;
+    const lang = req.body.lang;
+    console.log('lang: ', lang, 'usercode: ', userCodes);
+    res.json({'text': 'hello from nodejs'});
+});
+```
+
+## Send the UserCodes from Node server side (now as a client side) to the Online Judger system!
+
+### Install node-rest-client
+```
+npm install --save node-rest-client
+```
+
+- In rest.js import restClient and register
+```js
+const nodeRestClient = require('node-rest-client').Client;
+const restClient = new nodeRestClient();
+
+EXECUTOR_SERVER_URL = 'http://localhost:5000/results';
+
+restClient.registerMethod('results', EXECUTOR_SERVER_URL, 'POST');
+
+```
+
+- Modify the Results rout
+```js
+router.post('/results', jsonParser, (req, res) => {
+    const userCodes = req.body.userCodes;
+    const lang = req.body.lang;
+    console.log('lang: ', lang, 'usercode: ', userCodes);
+```
+
+```js
+   restClient.methods.results(
+       {
+           data: {code: userCodes, lang: lang},
+           headers: { 'Content-Type': 'application/json'}
+       },
+       (data, response) => {
+           // build: xxx ; run: xxx
+           const text = `Build output: ${data['build']}. Execute Output: ${data['run']}`;
+           data['text'] = text;
+           res.json(data);
+       }
+   );
+});
+```
+## Executer Server (Pyton3)
+
+- Build up a Execute Server
+```
+mkdir executor
+cd executor
+```
+### Install pip3 for python3
+```
+sudo apt-get update
+sudo apt-get -y install python3-pip
+sudo pip3 install Flask
+```
+
+### Add a requirements.txt for dependencies
+```
+touch requiremnet.txt
+
+Flast
+```
+- When you went to anoter developeing enviroment, could automatically intsall
+```
+sudo pip3 install -r requirement
+```
+
+### Executor_server.py
+- Add a Flash server, test the connection in localhost:5000 (default)
+```py
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    return 'hello world'
+if __name__ == '__main__':
+    app.run(debug = True)
+
+@app.route('/results', methods = ['POST'])
+def build_and_run():
+    return
+if __name__ == '__main__':
+    app.run(debug = True)       
+```
+
+- Transfer the output to JSON
+```py
+import json
+from flask import Flask
+app = Flask(__name__)
+from flask import jsonify
+from flask import request
+
+```
+
+- Receive data from Node Server
+```py
+@app.route('/results', methods=['POST'])
+def results():
+    data = request.get_json()
+    if 'code' not in data or 'lang' not in data:
+        return 'You should provide "code" and "lang"'
+    code = data['code']
+    lang = data['lang']
+    print("API got called with code: %s in %s" % (code, lang))
+    return jsonify({'build': 'build jajaja', 'run': 'run from oajsfoaij'})
+```

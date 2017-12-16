@@ -67,13 +67,14 @@ export class EditorComponent implements OnInit {
 
   submit(): void {
     const userCodes = this.editor.getValue();
-    const data =  {
+    const data = {
       userCodes: userCodes,
       lang: this.language.toLocaleLowerCase()
     };
-
+  
     this.dataService.buildAndRun(data)
       .then(res => this.output = res.text);
   }
+
 
 }
