@@ -5,6 +5,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/toPromise';
 
 import { Problem } from '../models/problem.model';
+import { resetFakeAsyncZone } from '@angular/core/testing';
 
 // import { PROBLEMS } from '../mock-problems';
 
@@ -46,6 +47,17 @@ export class DataService {
         })
         .catch(this.handleError);
     }
+
+  buildAndRun(data): Promise<any> {
+    const options = { headers: new HttpHeaders({'Content-Type': 'application/json' })};
+    return this.httpClient.post('api/v1/results', data, options)
+      .toPromise()
+      .then(res => {
+      console.log(res);
+      return res;
+    })
+    .catch(this.handleError);
+  }
 
   private handleError(error: any): Promise<any> {
     return Promise.reject(error.body || error);
