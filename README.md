@@ -1871,7 +1871,7 @@ socket.on('disconnrect', () => {
   let foundAndRemove = false;
   if (sessionId in collaborations) {
       const participants = collaborations[sessionId]['participants'];
-      const index = participants.indexOf(socket.id);
+    const index = participants.indexOf(socket.id);
       if (index >= 0){
           participants.slice(index, 1);
           foundAndRemove = true;
@@ -1892,3 +1892,30 @@ socket.on('disconnrect', () => {
 ```
 
 ***
+
+# Week 4
+* Show Result on UI
+* Add build_and_run API call in Node.js Server
+* Build a web server with Flask
+* Install Docker
+* Create Dockerfile
+* Docker build/push/pull
+* Build Executor
+
+## Before Editting
+-Copy the week2 code
+
+```
+cp -r week3 week4
+```
+
+## Show RESULT on UI
+#### Step1 : In editor, we need to display compile and execute output. Therefore, we need to add a div right after the ACE editor in editor component.
+
+
+#### Step2 : Build and Run are performed on server side. On the client side, we just make a service call and display the results. Here we call DataService to make the call.
+
+
+#### Step3: Add buildAndRun in DataService. Basically, it is just a post request to Node.js server then getting results. The target of post request is /api/vi/build_and_run
+- NoteL client doesn't know about executor, to client, it's only talking to the Node.js server
+
