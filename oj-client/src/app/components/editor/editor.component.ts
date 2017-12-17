@@ -48,7 +48,6 @@ export class EditorComponent implements OnInit {
     this.editor.lastAppliedChange = null;
     // register changne callback
     this.editor.on('change', (e) => {
-      console.log('editor change' + JSON.stringify(e));
       if (this.editor.lastAppliedChange != e) {
         this.collaboration.change(JSON.stringify(e));
       }
