@@ -74,6 +74,4 @@ export class EditorComponent implements OnInit {
     this.dataService.buildAndRun(data)
       .then(res => this.output = res.text);
   }
-
-
 }
