@@ -9,8 +9,8 @@ import executor_utils as eu
 def hello():
     return 'hello world'
 
-@app.route('/results', methods=['POST'])
-def results():
+@app.route('/build_and_run', methods=['POST'])
+def build_and_run():
     data = request.get_json()
     if 'code' not in data or 'lang' not in data:
         return 'You should provide "code" and "lang"'
@@ -18,10 +18,8 @@ def results():
     lang = data['lang']
     print("API got called with code: %s in %s" % (code, lang))
     # return jsonify({'build': 'build jajaja', 'run': 'run from oajsfoaij'})
-    result = eu.results(code, lang)
+    result = eu.build_and_run(code, lang)
     return jsonify(result)
-
-
 
 if __name__ == '__main__':
     eu.load_image()

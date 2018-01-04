@@ -8,12 +8,11 @@ from docker.errors import ContainerError
 from docker.errors import ImageNotFound
 
 CURRENT_DIR = os.path.dirname(os.path.relpath(__file__))
-IMAGE_NAME = 'paysonwu/cs503_1705'
+IMAGE_NAME = 'weichienhsu/coj_project'
 client = docker.from_env()
 
 TEMP_BUILD_DIR = "%s/tmp/" % CURRENT_DIR
 CONTAINER_NAME = "%s:latest" % IMAGE_NAME
-
 
 SOURCE_FILE_NAMES = {
     "java": "Example.java",
@@ -40,7 +39,7 @@ def load_image():
         print('image not found locally. lodaing from docker')
         client.images.pull(IMAGE_NAME)
     except APIError:
-        print('docker hub crashed')
+        print('docker hub go die')
         return
     print('image loaded')
 
@@ -48,9 +47,9 @@ def make_dir(dir):
     try:
         os.mkdir(dir)
     except OSError:
-        print('crash')
+        print('go die')
 
-def results(code, lang):
+def build_and_run(code, lang):
     result = {'build': None, 'run': None, 'error': None}
     source_file_parent_dir_name = uuid.uuid4()
     source_file_host_dir = "%s/%s" % (TEMP_BUILD_DIR, source_file_parent_dir_name)

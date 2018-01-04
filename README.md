@@ -1931,7 +1931,7 @@ output: string = '';
 
 #### Step2 : Build and Run are performed on server side. On the client side, we just make a service call and display the results. Here we call DataService to make the call.
 
-#### Step3: Add buildAndRun in DataService. Basically, it is just a post request to Node.js server then getting results. The target of post request is /api/vi/build_and_run
+#### Step3: Add buildAndRun in DataService. Basically, it is just a post request to Node.js server then getting results. The target of post request is /api/vi/results
 - NoteL client doesn't know about executor, to client, it's only talking to the Node.js server
 
 
@@ -1939,7 +1939,7 @@ output: string = '';
 ```ts
 buildAndRun(data): Promise<any> {
     const options = { headers: new HttpHeaders({ 'Content-Type': 'application/json'})};
-    return this.httpClient.post('api/v1/results', data, options)
+    return this.httpClient.post('api/v1/build_and_run', data, options)
       .toPromise()
       .then(res => {
         console.log(res);
@@ -1973,7 +1973,7 @@ private dataService: DataService
 - Handle the Router in rest.js
 
 ```js
-router.post('/results', jsonParser, (req, res) => {
+router.post('/build_and_run', jsonParser, (req, res) => {
     const userCodes = req.body.userCodes;
     const lang = req.body.lang;
     console.log('lang: ', lang, 'usercode: ', userCodes);
@@ -1993,22 +1993,22 @@ npm install --save node-rest-client
 const nodeRestClient = require('node-rest-client').Client;
 const restClient = new nodeRestClient();
 
-EXECUTOR_SERVER_URL = 'http://localhost:5000/results';
+EXECUTOR_SERVER_URL = 'http://localhost:5000/build_and_run';
 
-restClient.registerMethod('results', EXECUTOR_SERVER_URL, 'POST');
+restClient.registerMethod('build_and_run', EXECUTOR_SERVER_URL, 'POST');
 
 ```
 
-- Modify the Results rout
+- Modify the build_and_run rout
 ```js
-router.post('/results', jsonParser, (req, res) => {
+router.post('/build_and_run', jsonParser, (req, res) => {
     const userCodes = req.body.userCodes;
     const lang = req.body.lang;
     console.log('lang: ', lang, 'usercode: ', userCodes);
 ```
 
 ```js
-   restClient.methods.results(
+   restClient.methods.build_and_run(
        {
            data: {code: userCodes, lang: lang},
            headers: { 'Content-Type': 'application/json'}
@@ -2059,7 +2059,7 @@ def hello():
 if __name__ == '__main__':
     app.run(debug = True)
 
-@app.route('/results', methods = ['POST'])
+@app.route('/build_and_run', methods = ['POST'])
 def build_and_run():
     return
 if __name__ == '__main__':
@@ -2078,8 +2078,8 @@ from flask import request
 
 - Receive data from Node Server
 ```py
-@app.route('/results', methods=['POST'])
-def results():
+@app.route('/build_and_run', methods=['POST'])
+def build_and_run():
     data = request.get_json()
     if 'code' not in data or 'lang' not in data:
         return 'You should provide "code" and "lang"'
@@ -2106,7 +2106,7 @@ To start docker when the system boots: sudo systemctl enable docker
 - Dockerfile
 ```
 FROM ubuntu:16.04
-MAINTAINER Payson Wu
+MAINTAINER Kevin Hsu
 RUN apt-get update
 RUN apt-get install -y openjdk-8-jdk
 RUN apt-get install -y python3
@@ -2164,7 +2164,7 @@ EXECUTE_COMMANDS = {
 - Create a file tmp to save current_dir
 ```py
 CURRENT_DIR = os.path.dirname(os.path.relpath(__file__))
-IMAGE_NAME = 'paysonwu/cs503_1705'
+IMAGE_NAME = 'weichienhsu/coj_project'
 client = docker.from_env()
 
 TEMP_BUILD_DIR = "%s/tmp/" % CURRENT_DIR
@@ -2198,7 +2198,7 @@ def make_dir(dir):
 
 - Build and run function
 ```py
-def results(code, lang):
+def build_and_run(code, lang):
     result = {'build': None, 'run': None, 'error': None}
     source_file_parent_dir_name = uuid.uuid4()
     source_file_host_dir = "%s/%s" % (TEMP_BUILD_DIR, source_file_parent_dir_name)
@@ -2244,7 +2244,7 @@ import executor_utils as eu
 ```
 ```py
     # return jsonify({'build': 'build jajaja', 'run': 'run from oajsfoaij'})
-    result = eu.results(code, lang)
+    result = eu.build_and_run(code, lang)
     return jsonify(result)
 ```
 
@@ -2273,3 +2273,70 @@ ng build --prod
 
 ```
 
+***
+
+### Week5 Nginx - Load Balance
+- Script to settle all server and executer missions
+-  launcher.sh
+* Remove executing localhost at first
+* Start redis
+* run server & -> keep runing
+* run executor &
+* echo
+* presskey to terminate processes
+
+```sh
+#! /bin/bash
+
+fuser -k 3000/tcp
+fuser -k 5000/tcp
+
+service redis_6379 start
+
+cd ./oj-server
+nodemon server.js &
+
+cd ../executor
+pip3 install -r requirements.txt
+python3 executor_server.py &
+
+echo "=============================="
+read -p "PRESS [enter] to terminate processes." PRESSKEY
+
+fuser -k 3000/tcp
+fuser -k 5000/tcp
+service redis_6379 stop
+```
+- bash ./launcher.sh
+
+## Execute
+- oj-server:
+```
+nodemon server.js
+```
+
+- executor:
+```
+python3 executor_server.py
+```
+
+- Redis:
+```
+redis-server
+```
+
+- Docker
+```
+sudo ducker run weichienhsu/coj-project
+```
+
+## Developer:
+- oj-client:
+```
+npm install
+```
+
+- oj-server:
+```
+npm install
+```
