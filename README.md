@@ -2309,6 +2309,18 @@ service redis_6379 stop
 ```
 - bash ./launcher.sh
 
+## Install Nginx
+```
+deb http://nginx.org/packages/ubuntu/ venial nginx
+
+deb-src http://nginx.org/packages/ubuntu/ xenial nginx
+
+sudo apt-get update
+sudo apt-get install nginx
+
+sudo service nginx start
+```
+
 ## Execute
 - oj-server:
 ```
