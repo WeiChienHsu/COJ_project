@@ -2088,3 +2088,188 @@ def results():
     print("API got called with code: %s in %s" % (code, lang))
     return jsonify({'build': 'build jajaja', 'run': 'run from oajsfoaij'})
 ```
+
+## Docker
+- Install Docker
+```
+curl -fsSL https://get.docker.com/ | sh
+
+Setup docker permission:
+
+sudo usermod -aG docker $(whoami)
+
+(you need to logout and login again after set permission)
+
+To start docker when the system boots: sudo systemctl enable docker
+```
+
+- Dockerfile
+```
+FROM ubuntu:16.04
+MAINTAINER Payson Wu
+RUN apt-get update
+RUN apt-get install -y openjdk-8-jdk
+RUN apt-get install -y python3
+```
+
+- Build Docker
+```
+sudo docker build -t weichienhsu/coj_project
+docker login
+docker push weichienhsu/coj_project
+```
+
+- Docker Package
+```
+pip3 install docker
+```
+
+- executor_utils.py
+```py
+import docker
+import os
+import shutil
+import uuid
+
+from docker.errors import APIError
+from docker.errors import ContainerError
+from docker.errors import ImageNotFound
+```
+
+- .gitignore
+```
+*.pyc
+```
+- For Docker: source file names / binary names/ build commands/ execute commands
+
+```py
+SOURCE_FILE_NAMES = {
+    "java": "Example.java",
+    "python": "example.py"
+}
+BINARY_NAMES = {
+    "java": "Example",
+    "python": "example.py"
+}
+BUILD_COMMANDS = {
+    "java": "javac",
+    "python": "python3"
+}
+EXECUTE_COMMANDS = {
+    "java": "java",
+    "python": "python3"
+}
+```
+
+- Create a file tmp to save current_dir
+```py
+CURRENT_DIR = os.path.dirname(os.path.relpath(__file__))
+IMAGE_NAME = 'paysonwu/cs503_1705'
+client = docker.from_env()
+
+TEMP_BUILD_DIR = "%s/tmp/" % CURRENT_DIR
+CONTAINER_NAME = "%s:latest" % IMAGE_NAME
+```
+
+- Load image: first from client, if not found, pull from docker
+* for I/O we always need to try and expect
+
+```py
+def load_image():
+try:
+    client.images.get(IMAGE_NAME)
+    print("Image exists locally")
+except ImageNotFound:
+    print('image not found locally. lodaing from docker')
+    client.images.pull(IMAGE_NAME)
+except APIError:
+    print('docker hub go die')
+    return
+print('image loaded')
+```
+- Make a directory
+```py
+def make_dir(dir):
+    try:
+        os.mkdir(dir)
+    except OSError:
+        print('go die')
+```
+
+- Build and run function
+```py
+def results(code, lang):
+    result = {'build': None, 'run': None, 'error': None}
+    source_file_parent_dir_name = uuid.uuid4()
+    source_file_host_dir = "%s/%s" % (TEMP_BUILD_DIR, source_file_parent_dir_name)
+    source_file_guest_dir = "/test/%s" % (source_file_parent_dir_name)
+    make_dir(source_file_host_dir)
+    
+    with open("%s/%s" %(source_file_host_dir, SOURCE_FILE_NAMES[lang]), 'w') as source_file:
+        source_file.write(code)
+    try:
+        client.containers.run(
+            image=IMAGE_NAME,
+            command="%s %s" % (BUILD_COMMANDS[lang], SOURCE_FILE_NAMES[lang]),
+            volumes={source_file_host_dir: {'bind': source_file_guest_dir, 'mode': 'rw'}},
+            working_dir=source_file_guest_dir
+        )
+        print('source built')
+        result['build'] = 'OK'
+    except ContainerError as e:
+        result['build'] = str(e.stderr, 'utf-8')
+        shutil.rmtree(source_file_host_dir)
+        return result
+    try:
+        log = client.containers.run(
+            image=IMAGE_NAME,
+            command="%s %s" % (EXECUTE_COMMANDS[lang], BINARY_NAMES[lang]),
+            volumes={source_file_host_dir: {'bind': source_file_guest_dir, 'mode': 'rw'}},
+            working_dir=source_file_guest_dir
+        )
+        log = str(log, 'utf-8')
+        result['run'] = log
+    except ContainerError as e:
+        result['run'] = str(e.stderr, 'utf-8')
+        shutil.rmtree(source_file_host_dir)
+        return result
+    shutil.rmtree(source_file_host_dir)
+    return result
+```
+
+- For executor_server
+* Import executor_utils 
+```py
+import executor_utils as eu
+```
+```py
+    # return jsonify({'build': 'build jajaja', 'run': 'run from oajsfoaij'})
+    result = eu.results(code, lang)
+    return jsonify(result)
+```
+
+- init the loading from eu
+```py
+if __name__ == '__main__':
+    eu.load_image()
+    app.run(debug=True)
+```
+
+- If Couldn't find docker module
+```
+pip install docker
+```
+
+***
+
+## Production
+- If frontend didn't change anymore, you could build a production version.
+- There is no .map file and you couldn't debug on browser
+
+- In oj-client
+
+```
+ng build --prod
+
+```
+

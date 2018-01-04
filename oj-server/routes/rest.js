@@ -45,7 +45,7 @@ router.post('/results', jsonParser, (req, res) => {
        },
        (data, response) => {
            // build: xxx ; run: xxx
-           const text = `Build output: ${data['build']}. Execute Output: ${data['run']}`;
+           const text = `Build output: ${data['build']}.  Execute Output: ${data['run']}`;
            data['text'] = text;
            res.json(data);
        }
