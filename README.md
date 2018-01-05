@@ -1,6 +1,6 @@
 # COJ_project
 
-- [Demo](http://18.217.212.122:3000/problems)
+- [Demo](http://ec2-18-221-10-155.us-east-2.compute.amazonaws.com:3000/problems)
 
 ## How build the both client and server sides for this App
 ```
