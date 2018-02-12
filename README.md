@@ -1717,6 +1717,12 @@ module.exports = function(io){
 ## Store and restore socket session with Redis 
 
 - collaboration service, when user
+- 從connection的時候就先去collaborations看有沒有這個sessionId
+- 如果 collaborations 裡面沒有， 要從Redis裡面拿（restoreBuffer)
+- 拿到 sessionId，到collections裡面看有沒有，如果沒有，直接說“沒有”
+- 如果有，直接到collections內拿記錄下來的"cachedInstructions:
+- 然後把 instrcutions裡面從頭到尾把所有變化讀取, [0] "change" [1] delta
+
 ```ts
   restoreBuffer():void{
     this.collaborationSocket.emit('restoreBuffer');
@@ -1849,6 +1855,7 @@ socket.on('change', delta => {
 - When Client side call restore Buffer, emit out all contents saved in redis
 - instruction[0] : change
 - instruction[1] : content
+- instruction 就是紀錄每一行的動作
 ```js
 socket.on('restoreBuffer', () => {
     const sessionId = socketIdToSessionId[socket.id];
