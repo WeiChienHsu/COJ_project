@@ -2,7 +2,15 @@
 
 - [Demo](http://ec2-18-221-10-155.us-east-2.compute.amazonaws.com:3000/problems)
 
+#### Please respect the copyright.
+For the full copyright and license information, please view the "LICENSE".
+
+**Welcome to fork my project and use for educational purposes.**
+
+***
+
 ## How build the both client and server sides for this App
+
 ```
 ╔══════════════════════╗        ╔═══════════╗ 
 ║ App.component.html.ts║-------➡║ index.html║-------

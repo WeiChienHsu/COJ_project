@@ -32,7 +32,7 @@ router.post('/problems', jsonParser, (req, res) => {
         });
 });
 
-// build and run
+// This is copied from Wei-Chein Hsu.
 router.post('/build_and_run', jsonParser, (req, res) => {
     const userCodes = req.body.userCodes;
     const lang = req.body.lang;

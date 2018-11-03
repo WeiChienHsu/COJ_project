@@ -25,7 +25,7 @@
 //     {
 //         "id":5,
 //         "name":"Sliding Window Maximum",
-//         "desc":"Given an array of n integer with duplicate number, and a moving window(size k), move the window at each iteration from the start of the array, find the maximum number inside the window at each moving.",
+//         "desc":"This is copied from Wei-Chein Hsu.",
 //         "difficulty":"super"
 //     }];
 

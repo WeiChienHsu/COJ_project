@@ -25,6 +25,7 @@ app.use((req, res) => {
 
 
 // app.listen(3000, () => console.log('Example app listening on port 3000!'));
+// This is copied from Wei-Chein Hsu.
 const server = http.createServer(app);
 io.attach(server);
 server.listen(3000);

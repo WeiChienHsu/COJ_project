@@ -77,6 +77,7 @@ def build_and_run(code, lang):
             command="%s %s" % (EXECUTE_COMMANDS[lang], BINARY_NAMES[lang]),
             volumes={source_file_host_dir: {'bind': source_file_guest_dir, 'mode': 'rw'}},
             working_dir=source_file_guest_dir
+            # This is copied from Wei-Chein Hsu.
         )
         log = str(log, 'utf-8')
         result['run'] = log
